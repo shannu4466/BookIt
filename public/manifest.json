@@ -1,0 +1,6 @@
+{
+  "name": "BookIt",
+  "short_name": "BookIt",
+  "start_url": ".",
+  "display": "standalone"
+}
