@@ -7,7 +7,7 @@ import { useEvents } from '@/hooks/useEvents';
 import { useSports } from '@/hooks/useSports';
 import { usePlays } from '@/hooks/usePlays';
 
-const API_KEY = "AIzaSyAzAJVF2M-iBFVtjUo30YU_lqTRMD0JRVc";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 interface Message {
     role: 'user' | 'bot';
@@ -75,8 +75,7 @@ The user's currently selected location is: ${selectedLocation.toUpperCase()}
 5. If the user asks general everyday questions like "hi", "how are you", respond politely and ask how you can help them book tickets today.
 6. If the user asks about a clearly unrelated topic (programming, recipes, politics), inform them you only assist with booking tickets on the BookIt app.
 7. Keep your responses short, focused, friendly, and helpful.
-
-                    ### CURRENT APP DATA (JSON):
+### CURRENT APP DATA (JSON):
 ${JSON.stringify(appDataContext, null, 2)}`;
 
             // Format previous history for Gemini API

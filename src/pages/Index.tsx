@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Film, Calendar, Music, Trophy, MapPin, Search, Star, Percent, Gift, Ticket, ArrowUp, Users, Heart, Bot, User } from "lucide-react";
+import { Film, Calendar, Music, Trophy, MapPin, Search, Star, Percent, Gift, Ticket, ArrowUp, Users, Heart, Bot, User, LayoutDashboard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import UserProfile from "@/components/UserProfile";
@@ -608,16 +608,35 @@ const Index = () => {
         </div>
       </footer>
 
-      {/* Chatbot */}
-      <div className="fixed bottom-20 right-4 z-[9999] mb-[env(safe-area-inset-bottom)] animate-bounce">
-        <button
-          className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-full shadow-lg transition flex items-center justify-center"
-          aria-label="Open Chat"
-          onClick={() => navigate('/chatbot')}
-          title="Chat with AI"
-        >
-          <Bot className="w-7 h-7" />
-        </button>
+      {/* Chatbot and Landing Page Entry */}
+      <div className="fixed bottom-20 right-4 z-[9999] mb-[env(safe-area-inset-bottom)] flex flex-col gap-4">
+        {!user && (
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-75 group-hover:opacity-100 animate-pulse"></div>
+            <button
+              className="relative px-4 py-4 bg-slate-900 border border-white/10 text-white rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center hover:scale-110 active:scale-95"
+              onClick={() => navigate('/landing-page')}
+              title="Know more about this app"
+            >
+              <LayoutDashboard className="w-6 h-6 text-purple-400 group-hover:text-pink-400 transition-colors" />
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+              </span>
+            </button>
+          </div>
+        )}
+
+        <div className="animate-bounce">
+          <button
+            className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-full shadow-lg transition flex items-center justify-center"
+            aria-label="Open Chat"
+            onClick={() => navigate('/chatbot')}
+            title="Chat with AI"
+          >
+            <Bot className="w-7 h-7" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Navigation */}

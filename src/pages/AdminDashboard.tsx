@@ -38,6 +38,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem("adminStoredEventType") || "movies";
   });
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const locations = [
     { value: "all", label: "All Locations" },
@@ -58,22 +59,40 @@ const AdminDashboard = () => {
   }, [selectedLocation, activeTab])
 
   useEffect(() => {
-    const adminUser = localStorage.getItem('adminUser');
-    if (!adminUser) {
+    const adminUserStr = localStorage.getItem('adminUser');
+    if (!adminUserStr) {
       navigate('/admin/login');
       return;
     }
-    fetchAllContent();
+    const user = JSON.parse(adminUserStr);
+    setCurrentUser(user);
+
+    // If they are not super admin, lock their location to their registered location
+    if (!user.is_superadmin) {
+      setSelectedLocation(user.location);
+    }
+
+    fetchAllContent(user);
   }, [navigate]);
 
-  const fetchAllContent = async () => {
+  const fetchAllContent = async (user: any) => {
+    if (!user) return;
     setLoading(true);
     try {
+      let moviesQuery = supabase.from('movies').select('*').order('created_at', { ascending: false });
+      let eventsQuery = supabase.from('events').select('*').order('created_at', { ascending: false });
+      let playsQuery = supabase.from('plays').select('*').order('created_at', { ascending: false });
+      let sportsQuery = supabase.from('sports').select('*').order('created_at', { ascending: false });
+
+      if (!user.is_superadmin) {
+        moviesQuery = moviesQuery.eq('admin_id', user.id);
+        eventsQuery = eventsQuery.eq('admin_id', user.id);
+        playsQuery = playsQuery.eq('admin_id', user.id);
+        sportsQuery = sportsQuery.eq('admin_id', user.id);
+      }
+
       const [moviesRes, eventsRes, playsRes, sportsRes] = await Promise.all([
-        supabase.from('movies').select('*').order('created_at', { ascending: false }),
-        supabase.from('events').select('*').order('created_at', { ascending: false }),
-        supabase.from('plays').select('*').order('created_at', { ascending: false }),
-        supabase.from('sports').select('*').order('created_at', { ascending: false })
+        moviesQuery, eventsQuery, playsQuery, sportsQuery
       ]);
 
       if (moviesRes.error) throw moviesRes.error;
@@ -126,7 +145,7 @@ const AdminDashboard = () => {
       if (updateResult?.error) throw updateResult.error;
 
       toast.success(`${currentStatus ? 'Removed from' : 'Added to'} trending`);
-      fetchAllContent();
+      if (currentUser) fetchAllContent(currentUser);
     } catch (error) {
       console.error('Error updating trending status:', error);
       toast.error('Failed to update trending status');
@@ -155,7 +174,7 @@ const AdminDashboard = () => {
       if (deleteResult?.error) throw deleteResult.error;
 
       toast.success('Item deleted successfully');
-      fetchAllContent();
+      if (currentUser) fetchAllContent(currentUser);
     } catch (error) {
       console.error('Error deleting item:', error);
       toast.error('Failed to delete item');
@@ -266,17 +285,35 @@ const AdminDashboard = () => {
       <header className="bg-black/30 backdrop-blur-xl border-b border-purple-500/20 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Admin Dashboard
-            </h1>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="border-purple-500/30 text-black hover:bg-purple-500/20 hover:text-white"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Admin Dashboard
+              </h1>
+              {currentUser && (
+                <span className="text-sm text-gray-400 mt-1">
+                  Welcome back, <span className="text-white font-medium">{currentUser.name}, {currentUser.location}</span>
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {currentUser?.is_superadmin && (
+                <Button
+                  onClick={() => navigate("/super-admin")}
+                  variant="outline"
+                  className="border-green-500/30 text-green-400 hover:bg-green-500/20 hover:text-white"
+                >
+                  Super Admin Controls
+                </Button>
+              )}
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="border-purple-500/30 text-black hover:bg-purple-500/20 hover:text-white"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -337,18 +374,20 @@ const AdminDashboard = () => {
             />
           </div>
 
-          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-            <SelectTrigger className="w-full md:w-[200px] bg-white/10 border-purple-500/30 text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 text-white border-purple-500/30">
-              {locations.map((location) => (
-                <SelectItem key={location.value} value={location.value}>
-                  {location.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {currentUser?.is_superadmin && (
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger className="w-full md:w-[200px] bg-white/10 border-purple-500/30 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 text-white border-purple-500/30">
+                {locations.map((location) => (
+                  <SelectItem key={location.value} value={location.value}>
+                    {location.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Content Tabs */}

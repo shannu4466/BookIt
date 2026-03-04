@@ -24,6 +24,9 @@ import MyBookings from "./pages/MyBookings";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAddContent from "./pages/AdminAddContent";
+import AdminRegister from "./pages/AdminRegister";
+import SuperAdmin from "./pages/SuperAdmin";
+import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
 import AboutUs from "./pages/AboutUs";
 import WishlistButton from "./components/WishlistButton";
@@ -45,6 +48,7 @@ const App = () => (
               <Route path='/chatbot' element={< Chatbot />} />
               <Route path="/login" element={<Login />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/landing-page" element={<LandingPage />} />
               <Route path="/" element={<Index />} />
               <Route path="/movies" element={<Movies />} />
               <Route path="/events" element={<Events />} />
@@ -68,7 +72,9 @@ const App = () => (
               <Route path="/wishlist" element={<WishlistButton item_id={""} item_type={""} />} />
               <Route path="/help" element={<Help />} />
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/register" element={<AdminRegister />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/super-admin" element={<SuperAdmin />} />
               <Route path="/admin/add/:type" element={<AdminAddContent />} />
               <Route path="/admin/edit/:type/:id" element={<EditEvent />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

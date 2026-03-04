@@ -8,6 +8,7 @@ import { Eye, EyeOff, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { hashPassword } from "@/utils/crypto";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -21,14 +22,49 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
+      const trimmedEmail = email.trim();
+      const hashedPassword = await hashPassword(password);
+
       const { data, error } = await supabase
         .from('admin_users')
         .select('*')
-        .eq('email', email)
-        .eq('is_active', true)
+        .eq('email', trimmedEmail)
+        .eq('password_hash', hashedPassword)
         .single();
 
       if (error || !data) {
+
+        // Check if they are in the pending admin_requests table instead
+        const { data: requestData, error: requestError } = await supabase
+          .from('admin_requests')
+          .select('*')
+          .eq('email', trimmedEmail)
+          .eq('password_hash', hashedPassword)
+          .single();
+
+        if (requestData) {
+          if (requestData.status === 'pending') {
+            toast({
+              title: "Approval Pending",
+              description: "Your partner registration is waiting for super admin approval.",
+            });
+          } else if (requestData.status === 'rejected') {
+            toast({
+              title: "Request Rejected",
+              description: "Your partner registration was rejected by the super admin.",
+              variant: "destructive"
+            });
+          } else {
+            // In case they are somehow 'approved' but didn't make it to admin_users table
+            toast({
+              title: "Error",
+              description: "Invalid credentials",
+              variant: "destructive",
+            });
+          }
+          return;
+        }
+
         toast({
           title: "Error",
           description: "Invalid credentials",
@@ -37,22 +73,14 @@ const AdminLogin = () => {
         return;
       }
 
-      // In a real app, you'd verify the password hash
-      // For demo purposes, we'll check if password is "admin123"
-      if (password === "admin@1234") {
-        localStorage.setItem('adminUser', JSON.stringify(data));
-        toast({
-          title: "Success",
-          description: "Welcome to admin dashboard!",
-        });
-        navigate('/admin/dashboard');
-      } else {
-        toast({
-          title: "Error",
-          description: "Invalid credentials",
-          variant: "destructive",
-        });
-      }
+      // If we made it here, data exists and passwords matched (via eq clause)
+      localStorage.setItem('adminUser', JSON.stringify(data));
+      toast({
+        title: "Success",
+        description: "Welcome to admin dashboard!",
+      });
+      navigate('/admin/dashboard');
+
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -90,7 +118,7 @@ const AdminLogin = () => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">Password</Label>
               <div className="relative">

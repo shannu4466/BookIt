@@ -16,6 +16,7 @@ const EditEvent = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const { type, id } = useParams<{ type: string; id: string }>();
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -45,6 +46,12 @@ const EditEvent = () => {
 
     useEffect(() => {
         window.scrollTo(0, 0);
+
+        const adminUserStr = localStorage.getItem('adminUser');
+        if (adminUserStr) {
+            const user = JSON.parse(adminUserStr);
+            setIsSuperAdmin(user.is_superadmin);
+        }
 
         const fetchData = async () => {
             if (!type || !id) return;
@@ -229,18 +236,29 @@ const EditEvent = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="location" className="text-white">Location *</Label>
-                                    <Select value={formData.location} onValueChange={(value) => handleInputChange('location', value)}>
-                                        <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
-                                            <SelectValue placeholder="Select location" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-slate-800 text-white border-purple-500/30">
-                                            {locations.map((location) => (
-                                                <SelectItem key={location} value={location}>
-                                                    {location.charAt(0).toUpperCase() + location.slice(1)}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    {isSuperAdmin ? (
+                                        <Select value={formData.location} onValueChange={(value) => handleInputChange('location', value)}>
+                                            <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
+                                                <SelectValue placeholder="Select location" />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-slate-800 text-white border-purple-500/30">
+                                                {locations.map((location) => (
+                                                    <SelectItem key={location} value={location}>
+                                                        {location.charAt(0).toUpperCase() + location.slice(1)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <div className="relative">
+                                            <Input
+                                                value={formData.location ? formData.location.charAt(0).toUpperCase() + formData.location.slice(1) : ""}
+                                                className="bg-white/5 border-purple-500/20 text-gray-400 cursor-not-allowed"
+                                                disabled
+                                            />
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-purple-400 font-medium tracking-wide uppercase">Locked</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">

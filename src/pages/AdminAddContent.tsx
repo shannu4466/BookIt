@@ -15,6 +15,7 @@ const AdminAddContent = () => {
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
   const [loading, setLoading] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -53,13 +54,31 @@ const AdminAddContent = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  })
+
+    // Check admin status and lock location if not superadmin
+    const adminUserStr = localStorage.getItem('adminUser');
+    if (adminUserStr) {
+      const user = JSON.parse(adminUserStr);
+      setIsSuperAdmin(user.is_superadmin);
+      if (!user.is_superadmin) {
+        setFormData(prev => ({ ...prev, location: user.location }));
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      const adminUserStr = localStorage.getItem('adminUser');
+      if (!adminUserStr) {
+        toast.error("You must be logged in to add content.");
+        navigate('/admin/login');
+        return;
+      }
+      const adminUser = JSON.parse(adminUserStr);
+
       let insertData: any = {
         title: formData.title,
         description: formData.description,
@@ -67,6 +86,7 @@ const AdminAddContent = () => {
         price_range: formData.price_range,
         image_url: formData.image_url,
         is_trending: formData.is_trending,
+        admin_id: adminUser.id,
       };
 
       // Add type-specific fields
@@ -190,18 +210,29 @@ const AdminAddContent = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="location" className="text-white">Location *</Label>
-                  <Select value={formData.location} onValueChange={(value) => handleInputChange('location', value)}>
-                    <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 text-white border-purple-500/30">
-                      {locations.map((location) => (
-                        <SelectItem key={location} value={location}>
-                          {location.charAt(0).toUpperCase() + location.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isSuperAdmin ? (
+                    <Select value={formData.location} onValueChange={(value) => handleInputChange('location', value)}>
+                      <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
+                        <SelectValue placeholder="Select location" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 text-white border-purple-500/30">
+                        {locations.map((location) => (
+                          <SelectItem key={location} value={location}>
+                            {location.charAt(0).toUpperCase() + location.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="relative">
+                      <Input
+                        value={formData.location.charAt(0).toUpperCase() + formData.location.slice(1)}
+                        className="bg-white/5 border-purple-500/20 text-gray-400 cursor-not-allowed"
+                        disabled
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-purple-400 font-medium tracking-wide uppercase">Locked</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
