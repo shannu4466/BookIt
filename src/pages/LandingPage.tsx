@@ -124,7 +124,7 @@ const LandingPage = () => {
                     </p>
 
                     <div className={`flex flex-col sm:flex-row gap-4 transition-all duration-1000 delay-500 ${heroVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-                        <Button size="lg" className="h-14 px-8 text-lg bg-white text-slate-950 hover:bg-gray-200 rounded-full font-semibold shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all transform hover:-translate-y-1" onClick={() => navigate("/home")}>
+                        <Button size="lg" className="h-14 px-8 text-lg bg-white text-slate-950 hover:bg-gray-200 rounded-full font-semibold shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all transform hover:-translate-y-1" onClick={() => navigate("/")}>
                             Get Started Now <ChevronRight className="ml-2 w-5 h-5" />
                         </Button>
                         <Button size="lg" variant="outline" className="h-14 px-8 text-lg text-black border-white/20 hover:text-black hover:bg-gray-200 rounded-full font-medium transition-all transform hover:-translate-y-1 group" onClick={() => scrollToSection('features')}>
